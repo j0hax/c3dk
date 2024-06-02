@@ -10,11 +10,16 @@ CFLAGS      ?= -W -Wall -Wextra -Werror -Wundef -Wshadow -pedantic \
 LINKFLAGS   ?= -T$(MDK)/$(ARCH)/link.ld -nostdlib -nostartfiles -Wl,--gc-sections $(EXTRA_LINKFLAGS)
 CWD         ?= $(realpath $(CURDIR))
 FLASH_ADDR  ?= 0  # 2nd stage bootloader flash offset
-DOCKER      ?= docker run -it --rm -v $(CWD):$(CWD) -v $(MDK):$(MDK) -w $(CWD) mdashnet/riscv
+DOCKER_CMD  ?= docker
+DOCKER_TAG  ?= mdk
+DOCKER      ?= $(DOCKER_CMD) run -it --rm -v $(CWD):$(CWD) -v $(MDK):$(MDK) -w $(CWD) $(DOCKER_TAG)
 TOOLCHAIN   ?= $(DOCKER) riscv-none-elf
 SRCS        ?= $(MDK)/$(ARCH)/boot.c $(SOURCES)
 
-build: $(PROG).bin
+buildimage:
+	$(DOCKER_CMD) build -t $(DOCKER_TAG) $(MDK)/esp32c3/
+
+build: buildimage $(PROG).bin
 
 $(PROG).elf: $(SRCS)
 	$(TOOLCHAIN)-gcc  $(CFLAGS) $(SRCS) $(LINKFLAGS) -o $@
@@ -37,3 +42,4 @@ $(ESPUTIL): $(MDK)/esputil/esputil.c
 
 clean:
 	@rm -rf *.{bin,elf,map,lst,tgz,zip,hex} $(PROG)*
+	$(DOCKER_CMD) rmi -i $(DOCKER_TAG)
