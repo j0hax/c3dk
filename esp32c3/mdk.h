@@ -120,6 +120,10 @@ static inline void soc_init(void) {
 #endif
 }
 
+static inline void soc_reset() {
+  REG(C3_RTCCNTL)[0] |= BIT(31);  // Set RTC_CNTL_SW_SYS_RST in RTC_CNTL_OPTIONS0_REG
+}
+
 // API GPIO
 
 static inline void gpio_output_enable(int pin, bool enable) {
