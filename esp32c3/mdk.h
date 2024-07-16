@@ -55,6 +55,7 @@
 #define C3_I2S0 0x6002D000
 #define C3_APB_SARADC 0x60040000
 #define C3_AES_XTS 0x600CC000
+#define C3_USB_JTAG 0x60043000
 
 enum { GPIO_OUT_EN = 8, GPIO_OUT_FUNC = 341, GPIO_IN_FUNC = 85 };
 
@@ -210,6 +211,58 @@ static inline void ws2812_show(int pin, const uint8_t *buf, size_t len) {
       spin(delays[i2]);
     }
   }
+}
+
+// API JTAG
+
+// Check if there is waiting data to be received or sent
+static inline bool data_avail() { return (REG(C3_USB_JTAG)[1] & BIT(2)); }
+
+// Check if data can be written
+static inline bool data_free() { return (REG(C3_USB_JTAG)[1] & BIT(1)); }
+
+// Write the output buffer
+static inline void flush() { REG(C3_USB_JTAG)[1] = 1U; }
+
+// Get a byte of data from JTAG buffer (similar to getc())
+static inline uint8_t getb() { return REG(C3_USB_JTAG)[0] & ((1U << 8) - 1); }
+
+// Same as getb, but block until data is there
+static inline uint8_t getb_block() {
+  while (!data_avail())
+    ;
+  return getb();
+}
+
+// Put a byte of data to the JTAG buffer (similar to putc())
+static inline void putb(uint8_t byte) { REG(C3_USB_JTAG)[0] = byte; }
+
+// Same as putb, but block until data is there
+static inline void putb_block(uint8_t byte) {
+  while (!data_free())
+    ;
+  putb(byte);
+}
+
+// Read n bytes from JTAG
+static inline void jtag_read(void *buf, size_t nbyte) {
+  memset(buf, 0, nbyte);
+  uint8_t *bytes = (uint8_t *)buf;
+  size_t i = 0;
+  while (i < nbyte) {
+    bytes[i++] = getb_block();
+  }
+}
+
+// Write n bytes to JTAG
+static inline void jtag_write(const void *buf, size_t nbyte) {
+  uint8_t *bytes = (uint8_t *)buf;
+  size_t i = 0;
+  while (i < nbyte) {
+    putb(bytes[i++]);
+  }
+
+  flush();
 }
 
 // Default settings for board peripherals
