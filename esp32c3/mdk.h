@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -64,11 +63,14 @@ static inline void spin(volatile unsigned long count) {
   while (count--) asm volatile("nop");
 }
 
+#pragma GCC push_options
+#pragma GCC optimize ("-O0")
 static inline uint64_t systick(void) {
   REG(C3_SYSTIMER)[1] = BIT(30);  // TRM 10.5
   spin(1);
   return ((uint64_t) REG(C3_SYSTIMER)[16] << 32) | REG(C3_SYSTIMER)[17];
 }
+#pragma GCC pop_options
 
 static inline uint64_t uptime_us(void) {
   return systick() >> 4;
