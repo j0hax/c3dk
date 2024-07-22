@@ -1,120 +1,37 @@
-# A baremetal, single header ESP32/ESP32C3 SDK
+# c3dk
 
-A bare metal, single header make-based SDK for the ESP32/ESP32C3 chips.
-Written from scratch using datasheets ( [ESP32 C3
-TRM](https://www.espressif.com/sites/default/files/documentation/esp32-c3_technical_reference_manual_en.pdf),
-[ESP32
-TRM](https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf)).
-It is completely independent from the ESP-IDF and does not use any ESP-IDF
-tools or files. MDK implements its own flashing utility `esputil`, which is
-developed in a separate repo. Esputil is
-written in C, with no dependencies on python or anything else, working on
-Mac, Linux, and Windows as a static, singe no-dependencies executable.
+A bare metal, single header make-based SDK for the ESP32-C3 chip.
 
-A screenshot below demonstrates a [examples/ws2812](examples/ws2812)
-RGB LED firmware flashed on a ESP32-C3-DevKitM-1 board. It takes < 2 seconds
-for a full firmware rebuild and flash:
+This code was adapted from [cpq/MDK](https://github.com/cpq/mdk/tree/e2c1d4e4bd9b152dfa32b48a7c0ae5f5a8b8276d) and extebded to be used in the bachelor's thesis "[On the Power Estimation of a RISC-V Platform using Performance Monitoring Counters and RTOS Events](https://www.sra.uni-hannover.de/Theses/2024/BA-AHA-energy-pmc.html)."
 
-![](examples/ws2812/rainbow.gif)
+The file structure is as follows:
 
-Currently, "esp32c3" and "esp32" architectures are supported.
-MDK file structure is as follows:
+link.ld
+: linker script file
+: allows registers to be memory mapped.
 
-- $(ARCH)/[link.ld](esp32c3/link.ld) - a linker script file. ARCH is esp32 or esp32c3
-- $(ARCH)/[boot.c](esp32c3/boot.c) - a startup code 
-- $(ARCH)/[mdk.h](esp32c3/mdk.h) - a single header that implements MDK API
-- $(ARCH)/[build.mk](esp32c3/build.mk) - a helper Makefile for building projects
+boot.c
+: simple startup code
+: sets up a stack
+: calls `main()`
 
+c3dk.h
+: primary header that implements API
 
-# Environment setup
+build.mk
+: helper Makefile for building projects
 
-1. Use Linux or MacOS. Install Docker
-2. Execute the following shell commands (or add them to your `~/.profile`):
-  ```sh
-  $ export MDK=/path/to/mdk     # Points to MDK directory
-  $ export ARCH=esp32c3         # Valid choices: esp32 esp32c3
-  $ export PORT=/dev/ttyUSB0    # Serial port for flashing
-  ```
+## Toolchain
 
-Verify setup by building and flashing a blinky example firmware.
-From repository root, execute:
+c3dk builds images in an Alpine Linux container. The toolchain in use is `gcc-riscv-none-elf` in conjunction with the `newlib` C library.
 
-```sh
-$ make -C examples/blinky clean build flash monitor
-```
+## Differences from MDK
 
-# Firmware Makefile
+I am very appreciative of the hard work that has been done in MDK. The project has, however, seen little maintenance over the past two years. I have opened some Pull Requests without response, prompting me to hard-fork and rebrand the project. Some notable differences include that:
 
-Firmware Makefile should look like this (see [examples/blinky/Makefile](examples/blinky/Makefile)):
+- This fork focusses on the ESP32-C3 exclusively.
+- [cpq/esputil](https://github.com/cpq/esputil/tree/master) is *not* used: The utility did not support flashing over JTAG, and the images built did not have headers adapted to the ESP32-C3. As a result, I recommend using ESP's official [esptool](https://github.com/espressif/esptool).
+- Extended API
+- Extended linker script
 
-```make
-SOURCES = main.c another_file.c
-
-EXTRA_CFLAGS ?=
-EXTRA_LINKFLAGS ?=
-
-include $(MDK)/$(ARCH)/build.mk
-```
-
-# Environment reference
-
-- **Environment / Makefile variables:**
-  - `ARCH` - Architecture. Possible values: esp32c3, esp32
-  - `TOOLCHAIN` - Crosscompiler prefix. riscv64-unknown-elf or xtensa-esp32-elf
-  - `PORT` - Serial port for flashing. Default: /dev/ttyUSB0
-  - `FLASH_PARAMS` - Flash parameters, see below. Default: empty
-  - `FLASH_SPI` - Flash SPI settings, see below. Default: empty
-  - `EXTRA_CFLAGS` - Extra compiler flags. Default: empty
-  - `EXTRA_LINKFLAGS` - Extra linker flags. Default: empty
-- **Makefile targets:**
-  - `make clean` - Clean up build artifacts
-  - `make build` - Build firmware in a project directory
-  - `make flash` - Flash firmware. Needs PORT variable set
-  - `make monitor` - Run serial monitor. Needs PORT variable set
-- **Board defaults:** - overridable by e.g. `EXTRA_CFLAGS="-DLED1=3"`
-  - `LED1` - User LED pin. Default: 2
-  - `BTN1` - User button pin. Default: 9
-
-
-# API reference
-
-Currently, a limited API is implemented. The plan is to implement WiFi/BLE
-primitives in order to integrate [cesanta/mongoose](https://github.com/cesanta/mongoose)
-networking library. Unfortunately radio registers are not documented
-by Espressif - please [contact us](https://mongoose.ws/contact/) if
-you have more information on that.
-
-- GPIO
-  - `void gpio_output(int pin);` - set pin mode to OUTPUT
-  - `void gpio_input(int pin);` - set pin mode to INPUT
-  - `void gpio_write(int pin, bool value);` - set pin to low (false) or high
-  - `void gpio_toggle(int pin);` - toggle pin value
-  - `bool gpio_read(int pin);` - read pin value
-- SPI
-  - `struct spi { int miso, mosi, clk, cs; };` - an SPI descriptor
-  - `bool spi_init(struct spi *spi);` - initialise SPI
-  - `void spi_begin(struct spi *spi, int cs);` - start SPI transaction
-  - `void spi_end(struct spi *spi, int cs);` - end SPI transaction
-  - `uin8_t spi_txn(struct spi *spi, uint8_t);` - do SPI transaction: write one byte, read response
-- UART 
-  - `void uart_init(int no, int tx, int rx, int baud);` - initialise UART
-  - `bool uart_read(int no, uint8_t *c);` - read byte. Return true on success
-  - `void uart_write(int no, uint8_t c);` - write byte. Block if FIFO is full
-- Misc
-  - `void wdt_disable(void);` - disable watchdog
-  - `uint64_t uptime_us(void);` - return uptime in microseconds
-  - `void delay_us(unsigned long us);` - block for "us" microseconds
-  - `void delay_ms(unsigned long ms);` - block for "ms" milliseconds
-  - `void spin(unsigned long count);` - execute "count" no-op instructions
-
-
-# Toolchain Docker images
-
-By default, docker is used for builds. For `ARCH=esp32`, the `espressif/idf`
-image is used. For `ARCH=esp32c3`, the `mdashnet/riscv` image is used,
-which is built using the following Dockerfile:
-
-```Dockerfile
-FROM alpine:edge
-RUN apk add --update build-base gcc-riscv-none-elf newlib-riscv-none-elf && rm -rf /var/cache/apk/*
-```
+Aside from changed variable names, the project should mostly be backward-compatible with MDK. Windows and macOS support is untested.

@@ -1,5 +1,15 @@
-// Copyright (c) 2022 Cesanta
-// All rights reserved
+/*
+ * SPDX-License-Identifier: MIT
+ *
+ * Copyright (c) 2024 Johannes Arnold
+ *
+ * This code was adapted from Sergey Lyubka's MDK:
+ * https://github.com/cpq/mdk/tree/e2c1d4e4bd9b152dfa32b48a7c0ae5f5a8b8276d
+ *
+ * Below is the original copyright:
+ * Copyright (c) 2021 Cesanta
+ * All rights reserved
+ */
 
 #pragma once
 
