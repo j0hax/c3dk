@@ -4,22 +4,14 @@ A bare metal, single header make-based SDK for the ESP32-C3 chip.
 
 This code was adapted from [cpq/MDK](https://github.com/cpq/mdk/tree/e2c1d4e4bd9b152dfa32b48a7c0ae5f5a8b8276d) and extebded to be used in the bachelor's thesis "[On the Power Estimation of a RISC-V Platform using Performance Monitoring Counters and RTOS Events](https://www.sra.uni-hannover.de/Theses/2024/BA-AHA-energy-pmc.html)."
 
-The file structure is as follows:
+## File overview
 
-link.ld
-: linker script file
-: allows registers to be memory mapped.
+c3dk consists of the following files:
 
-boot.c
-: simple startup code
-: sets up a stack
-: calls `main()`
-
-c3dk.h
-: primary header that implements API
-
-build.mk
-: helper Makefile for building projects
+- **link.ld:** linker script file, allows registers to be memory mapped.
+- **boot.c:** simple startup code. Sets up a stack, calls `main()`
+- **c3dk.h:** primary header that implements API
+- **build.mk:** helper Makefile for building projects
 
 ## Toolchain
 
