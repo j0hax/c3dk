@@ -1,6 +1,8 @@
 # Variables
 PROG        ?= firmware
-SDK         ?= $(realpath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+SDK         ?= $(dir $(lastword $(MAKEFILE_LIST)))
+# As SDK is often overriden it is imperative to ensure it is an absolute path.
+SDK         := $(realpath $(SDK))
 CWD         ?= $(realpath $(CURDIR))
 DOCKER_CMD  ?= podman
 DOCKER_TAG  ?= c3dk
