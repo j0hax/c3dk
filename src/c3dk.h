@@ -66,6 +66,20 @@
 #define C3_AES_XTS 0x600CC000
 #define C3_USB_JTAG 0x60043000
 
+/* Simple CSR access */
+
+// Return value from CSR
+#define csr_read(addr) __extension__ ({ \
+    uint32_t __tmp; \
+    asm volatile ("csrr %0, " #addr : "=r"(__tmp)); \
+    __tmp; \
+})
+
+// Write value to CSR
+#define csr_write(addr, value) __extension__ ({ \
+    asm volatile ("csrw " #addr ", %0" :: "r"(value)); \
+})
+
 enum { GPIO_OUT_EN = 8, GPIO_OUT_FUNC = 341, GPIO_IN_FUNC = 85 };
 
 // Perform `count` "NOP" operations
