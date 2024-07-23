@@ -19,8 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BIT(x) ((uint32_t) 1U << (x))
-#define REG(x) ((volatile uint32_t *) (x))
+#define BIT(x) ((uint32_t)1U << (x))
+#define REG(x) ((volatile uint32_t *)(x))
 
 #define C3_SYSTEM 0x600c0000
 #define C3_SENSITIVE 0x600c1000
@@ -70,50 +70,48 @@ enum { GPIO_OUT_EN = 8, GPIO_OUT_FUNC = 341, GPIO_IN_FUNC = 85 };
 
 // Perform `count` "NOP" operations
 static inline void spin(volatile unsigned long count) {
-  while (count--) asm volatile("nop");
+  while (count--)
+    asm volatile("nop");
 }
 
 #pragma GCC push_options
-#pragma GCC optimize ("-O0")
+#pragma GCC optimize("-O0")
 static inline uint64_t systick(void) {
-  REG(C3_SYSTIMER)[1] = BIT(30);  // TRM 10.5
+  REG(C3_SYSTIMER)[1] = BIT(30); // TRM 10.5
   spin(1);
-  return ((uint64_t) REG(C3_SYSTIMER)[16] << 32) | REG(C3_SYSTIMER)[17];
+  return ((uint64_t)REG(C3_SYSTIMER)[16] << 32) | REG(C3_SYSTIMER)[17];
 }
 #pragma GCC pop_options
 
-static inline uint64_t uptime_us(void) {
-  return systick() >> 4;
-}
+static inline uint64_t uptime_us(void) { return systick() >> 4; }
 
 static inline void delay_us(unsigned long us) {
   uint64_t until = uptime_us() + us;
-  while (uptime_us() < until) spin(1);
+  while (uptime_us() < until)
+    spin(1);
 }
 
-static inline void delay_ms(unsigned long ms) {
-  delay_us(ms * 1000);
-}
+static inline void delay_ms(unsigned long ms) { delay_us(ms * 1000); }
 
 static inline void wdt_disable(void) {
-  REG(C3_RTCCNTL)[42] = 0x50d83aa1;  // Disable write protection
+  REG(C3_RTCCNTL)[42] = 0x50d83aa1; // Disable write protection
   // REG(C3_RTCCNTL)[36] &= BIT(31);    // Disable RTC WDT
-  REG(C3_RTCCNTL)[36] = 0;  // Disable RTC WDT
-  REG(C3_RTCCNTL)[35] = 0;  // Disable
+  REG(C3_RTCCNTL)[36] = 0; // Disable RTC WDT
+  REG(C3_RTCCNTL)[35] = 0; // Disable
 
   // bootloader_super_wdt_auto_feed()
   REG(C3_RTCCNTL)[44] = 0x8F1D312A;
   REG(C3_RTCCNTL)[43] |= BIT(31);
   REG(C3_RTCCNTL)[45] = 0;
 
-  REG(C3_TIMERGROUP0)[63] &= ~BIT(9);  // TIMG_REGCLK -> disable TIMG_WDT_CLK
-  REG(C3_TIMERGROUP0)[18] = 0;         // Disable TG0 WDT
-  REG(C3_TIMERGROUP1)[18] = 0;         // Disable TG1 WDT
+  REG(C3_TIMERGROUP0)[63] &= ~BIT(9); // TIMG_REGCLK -> disable TIMG_WDT_CLK
+  REG(C3_TIMERGROUP0)[18] = 0;        // Disable TG0 WDT
+  REG(C3_TIMERGROUP1)[18] = 0;        // Disable TG1 WDT
 }
 
 static inline void wifi_get_mac_addr(uint8_t mac[6]) {
   uint32_t a = REG(C3_EFUSE)[17], b = REG(C3_EFUSE)[18];
-  mac[0] = (b >> 8) & 255, mac[1] = b & 255, mac[2] = (uint8_t) (a >> 24) & 255;
+  mac[0] = (b >> 8) & 255, mac[1] = b & 255, mac[2] = (uint8_t)(a >> 24) & 255;
   mac[3] = (a >> 16) & 255, mac[4] = (a >> 8) & 255, mac[5] = a & 255;
 }
 
@@ -123,7 +121,7 @@ static inline void soc_init(void) {
   REG(C3_SYSTEM)[2] |= BIT(0) | BIT(2);
   REG(C3_SYSTEM)[22] = BIT(19) | (40U << 12) | BIT(10);
   // REG(C3_RTCCNTL)[47] = 0; // RTC_APB_FREQ_REG -> freq >> 12
-  ((void (*)(int)) 0x40000588)(160);  // ets_update_cpu_frequency(160)
+  ((void (*)(int))0x40000588)(160); // ets_update_cpu_frequency(160)
 
 #if 0
   // Configure system clock timer, TRM 8.3.1, 8.9
@@ -134,7 +132,8 @@ static inline void soc_init(void) {
 }
 
 static inline void soc_reset() {
-  REG(C3_RTCCNTL)[0] |= BIT(31);  // Set RTC_CNTL_SW_SYS_RST in RTC_CNTL_OPTIONS0_REG
+  REG(C3_RTCCNTL)
+  [0] |= BIT(31); // Set RTC_CNTL_SW_SYS_RST in RTC_CNTL_OPTIONS0_REG
 }
 
 // API GPIO
@@ -145,22 +144,20 @@ static inline void gpio_output_enable(int pin, bool enable) {
 }
 
 static inline void gpio_output(int pin) {
-  REG(C3_GPIO)[GPIO_OUT_FUNC + pin] = BIT(9) | 128;  // Simple out, TRM 5.5.3
+  REG(C3_GPIO)[GPIO_OUT_FUNC + pin] = BIT(9) | 128; // Simple out, TRM 5.5.3
   gpio_output_enable(pin, 1);
 }
 
 static inline void gpio_write(int pin, bool value) {
-  REG(C3_GPIO)[1] &= ~BIT(pin);                 // Clear first
-  REG(C3_GPIO)[1] |= (value ? 1U : 0U) << pin;  // Then set
+  REG(C3_GPIO)[1] &= ~BIT(pin);                // Clear first
+  REG(C3_GPIO)[1] |= (value ? 1U : 0U) << pin; // Then set
 }
 
-static inline void gpio_toggle(int pin) {
-  REG(C3_GPIO)[1] ^= BIT(pin);
-}
+static inline void gpio_toggle(int pin) { REG(C3_GPIO)[1] ^= BIT(pin); }
 
 static inline void gpio_input(int pin) {
-  gpio_output_enable(pin, 0);                 // Disable output
-  REG(C3_IO_MUX)[1 + pin] = BIT(9) | BIT(8);  // Enable pull-up
+  gpio_output_enable(pin, 0);                // Disable output
+  REG(C3_IO_MUX)[1 + pin] = BIT(9) | BIT(8); // Enable pull-up
 }
 
 static inline bool gpio_read(int pin) {
@@ -170,20 +167,17 @@ static inline bool gpio_read(int pin) {
 // API SPI
 
 struct spi {
-  int miso, mosi, clk, cs;  // Pins
-  int spin;                 // Number of NOP spins for bitbanging
+  int miso, mosi, clk, cs; // Pins
+  int spin;                // Number of NOP spins for bitbanging
 };
 
-static inline void spi_begin(struct spi *spi) {
-  gpio_write(spi->cs, 0);
-}
+static inline void spi_begin(struct spi *spi) { gpio_write(spi->cs, 0); }
 
-static inline void spi_end(struct spi *spi) {
-  gpio_write(spi->cs, 1);
-}
+static inline void spi_end(struct spi *spi) { gpio_write(spi->cs, 1); }
 
 static inline bool spi_init(struct spi *spi) {
-  if (spi->miso < 0 || spi->mosi < 0 || spi->clk < 0) return false;
+  if (spi->miso < 0 || spi->mosi < 0 || spi->clk < 0)
+    return false;
   gpio_input(spi->miso);
   gpio_output(spi->mosi);
   gpio_output(spi->clk);
@@ -196,19 +190,20 @@ static inline bool spi_init(struct spi *spi) {
 
 // Send a byte, and return a received byte
 static inline unsigned char spi_txn(struct spi *spi, unsigned char tx) {
-  unsigned count = spi->spin <= 0 ? 9 : (unsigned) spi->spin;
+  unsigned count = spi->spin <= 0 ? 9 : (unsigned)spi->spin;
   unsigned char rx = 0;
   for (int i = 0; i < 8; i++) {
-    gpio_write(spi->mosi, tx & 0x80);   // Set mosi
-    spin(count);                        // Wait half cycle
-    gpio_write(spi->clk, 1);            // Clock high
-    rx = (unsigned char) (rx << 1);     // "rx <<= 1" gives warning??
-    if (gpio_read(spi->miso)) rx |= 1;  // Read miso
-    spin(count);                        // Wait half cycle
-    gpio_write(spi->clk, 0);            // Clock low
-    tx = (unsigned char) (tx << 1);     // Again, avoid warning
+    gpio_write(spi->mosi, tx & 0x80); // Set mosi
+    spin(count);                      // Wait half cycle
+    gpio_write(spi->clk, 1);          // Clock high
+    rx = (unsigned char)(rx << 1);    // "rx <<= 1" gives warning??
+    if (gpio_read(spi->miso))
+      rx |= 1;                     // Read miso
+    spin(count);                   // Wait half cycle
+    gpio_write(spi->clk, 0);       // Clock low
+    tx = (unsigned char)(tx << 1); // Again, avoid warning
   }
-  return rx;  // Return the received byte
+  return rx; // Return the received byte
 }
 
 // API WS2812
@@ -216,7 +211,7 @@ static inline void ws2812_show(int pin, const uint8_t *buf, size_t len) {
   unsigned long delays[2] = {2, 6};
   for (size_t i = 0; i < len; i++) {
     for (uint8_t mask = 0x80; mask; mask >>= 1) {
-      int i1 = buf[i] & mask ? 1 : 0, i2 = i1 ^ 1;  // This takes some cycles
+      int i1 = buf[i] & mask ? 1 : 0, i2 = i1 ^ 1; // This takes some cycles
       gpio_write(pin, 1);
       spin(delays[i1]);
       gpio_write(pin, 0);
@@ -280,9 +275,9 @@ static inline void jtag_write(const void *buf, size_t nbyte) {
 // Default settings for board peripherals
 
 #ifndef LED1
-#define LED1 2  // Default LED pin
+#define LED1 2 // Default LED pin
 #endif
 
 #ifndef BTN1
-#define BTN1 9  // Default user button pin
+#define BTN1 9 // Default user button pin
 #endif
