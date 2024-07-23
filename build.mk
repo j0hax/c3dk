@@ -20,6 +20,9 @@ LINKFLAGS   ?= -T$(SDK)/src/link.ld -nostdlib -nostartfiles \
 ESPTOOL     ?= esptool.py
 PORT        ?= /dev/ttyACM0
 BAUD        ?= 460800
+FLASH_FREQ  ?= 80m
+FLASH_SIZE  ?= 4MB
+FLASH_MODE  ?= dio
 FLASH_ADDR  ?= 0x0
 
 # Default target
@@ -44,7 +47,8 @@ $(PROG).elf: $(SRCS)
 .PHONY: image
 image: $(PROG).elf
 	$(ESPTOOL) --chip esp32c3 elf2image -o build/$(PROG).bin \
-		build/$(PROG).elf
+		--flash_freq $(FLASH_FREQ) --flash_size $(FLASH_SIZE) \
+		--flash_mode $(FLASH_MODE) build/$(PROG).elf
 
 # Flash the image to ESP32-C3
 .PHONY: flash
