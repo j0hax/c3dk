@@ -15,6 +15,10 @@ CFLAGS      ?= -W -Wall -Wextra -Werror -Wundef -Wshadow -pedantic \
                $(EXTRA_CFLAGS)
 LINKFLAGS   ?= -T$(SDK)/src/link.ld -nostdlib -nostartfiles \
                -Wl,--gc-sections $(EXTRA_LINKFLAGS)
+ESPTOOL     ?= esptool.py
+PORT        ?= /dev/ttyACM0
+BAUD        ?= 460800
+FLASH_ADDR  ?= 0x0
 
 # Default target
 .PHONY: all
@@ -34,9 +38,22 @@ $(PROG).elf: $(SRCS)
 	@mkdir -p build
 	$(TOOLCHAIN)-gcc $(CFLAGS) $(SRCS) $(LINKFLAGS) -o build/$@
 
+# Generate ESP32-C3 image
+.PHONY: image
+image: $(PROG).elf
+	$(ESPTOOL) --chip esp32c3 elf2image -o build/$(PROG).bin \
+		build/$(PROG).elf
+
+# Flash the image to ESP32-C3
+.PHONY: flash
+flash: image
+	$(ESPTOOL) --port $(PORT) --baud $(BAUD) write_flash $(FLASH_ADDR) \
+		build/$(PROG).bin
+
 # Clean the project
 .PHONY: clean
 clean:
 	@rm -rf *.{bin,elf,map,lst,tgz,zip,hex} $(PROG)*
 	@rm -rf build
 	$(DOCKER_CMD) rmi -i $(DOCKER_TAG)
+
