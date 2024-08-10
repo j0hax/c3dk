@@ -1,0 +1,20 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: c3dk
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Johannes Karl
+    family-names: Arnold
+    email: johannes.arnold@stud.uni-hannover.de
+    affiliation: Leibniz Universität Hannover
+repository-code: 'https://github.com/j0hax/c3dk'
+abstract: ' A bare metal SDK for the ESP32-C3'
+keywords:
+  - esp32-c3
+  - risc-v
+license: MIT
