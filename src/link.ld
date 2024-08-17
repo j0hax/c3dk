@@ -225,4 +225,4 @@ __umodsi3 = 0x400008c0;
 __unorddf2 = 0x400008c4;
 __unordsf2 = 0x400008c8;
 
-/*__errno = 0x40000670;*/
+__errno = 0x40000670;

@@ -15,7 +15,12 @@ c3dk consists of the following files:
 
 ## Toolchain
 
-c3dk builds images in an Alpine Linux container. The toolchain in use is `gcc-riscv-none-elf` in conjunction with the `newlib` C library.
+c3dk builds images in a custom Debian container which contains a GCC multilib toolchain tailored specifically to the ESP32-C3's application binary interface (ABI), allowing, for example, for complete softfloat support.
+
+The toolchain resides in `/opt` in conjunction with the `newlib` C library.
+
+> [!NOTE]
+> The initial build may take considerable time and disk space, but will be efficiently cached thanks to multi-stage builds.
 
 ## Differences from MDK
 
