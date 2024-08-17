@@ -13,7 +13,18 @@ c3dk consists of the following files:
 - **c3dk.h:** primary header that implements API
 - **build.mk:** helper Makefile for building projects
 
-## Toolchain
+## Installation & Usage
+
+A Linux System with Podman or Docker is required.
+
+To build software, create a `Makefile` with at least the following contents:
+```makefile
+SOURCES = main.c, other.c
+SDK = /path/to/c3dk
+include $(SDK)/build.mk
+```
+
+### Toolchain
 
 c3dk builds images in a custom Debian container which contains a GCC multilib toolchain tailored specifically to the ESP32-C3's application binary interface (ABI), allowing, for example, for complete softfloat support.
 
