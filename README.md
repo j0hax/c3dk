@@ -2,7 +2,7 @@
 
 A bare metal, single header make-based SDK for the ESP32-C3 chip.
 
-This code was adapted from [cpq/mdk](https://github.com/cpq/mdk/tree/e2c1d4e4bd9b152dfa32b48a7c0ae5f5a8b8276d) and extebded to be used in the bachelor's thesis "[On the Power Estimation of a RISC-V Platform using Performance Monitoring Counters and RTOS Events](https://www.sra.uni-hannover.de/Theses/2024/BA-AHA-energy-pmc.html)."
+This code was adapted from [cpq/mdk](https://github.com/cpq/mdk/tree/e2c1d4e4bd9b152dfa32b48a7c0ae5f5a8b8276d) and extended to be used in my bachelor's thesis "[On the Power Estimation of a RISC-V Platform using Performance Monitoring Counters and RTOS Events](https://www.sra.uni-hannover.de/Theses/2024/BA-AHA-energy-pmc.html)."
 
 ## File overview
 
@@ -26,7 +26,7 @@ include $(SDK)/build.mk
 
 ### Toolchain
 
-c3dk builds images in a custom Debian container which contains a GCC multilib toolchain tailored specifically to the ESP32-C3's application binary interface (ABI), allowing, for example, for complete softfloat support.
+c3dk builds images in a custom Debian container which contains a GCC multilib toolchain[^tc] tailored specifically to the ESP32-C3's application binary interface (ABI), allowing, for example, for complete softfloat and `math.h` support.
 
 The toolchain resides in `/opt` in conjunction with the `newlib` C library.
 
@@ -43,3 +43,5 @@ I am very appreciative of the hard work that has been done in MDK. The project h
 - Extended linker script
 
 Aside from changed variable names, the project should mostly be backward-compatible with MDK. Windows and macOS support is untested.
+
+[^tc]: The ESP32-C3 needs a `rv32imc_zicsr/ilp32` multilib, a combination which is not built in most GCC RISC-V distributions as of August 2024.
