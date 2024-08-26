@@ -31,7 +31,9 @@ c3dk builds images in a custom Debian container which contains a GCC multilib to
 The toolchain resides in `/opt` in conjunction with the `newlib` C library.
 
 > [!NOTE]
-> The initial build may take considerable time and disk space, but will be efficiently cached thanks to multi-stage builds.
+> The initial local build may take considerable time and disk space, but will be efficiently cached thanks to multi-stage builds.
+> 
+> A pre-built container on GitHub is hosted via `ghcr.io/j0hax/c3dk:nightly`. 
 
 ## Differences from MDK
 
