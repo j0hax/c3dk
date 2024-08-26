@@ -15,7 +15,7 @@ CFLAGS      += -W -Wall -Wextra -Werror -Wundef -Wshadow -pedantic \
                -fno-builtin -march=rv32imc_zicsr -mabi=ilp32 -O2 \
                -ffunction-sections -fdata-sections -I. -I$(SDK)/src/ \
                $(EXTRA_CFLAGS)
-LINKFLAGS   += -T$(SDK)/src/link.ld -nostdlib -nostartfiles \
+LINKFLAGS   += -T$(SDK)/src/link.ld -nostartfiles \
                -Wl,--gc-sections $(EXTRA_LINKFLAGS)
 ESPTOOL     ?= esptool.py
 PORT        ?= /dev/ttyACM0
